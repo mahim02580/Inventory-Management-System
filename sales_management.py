@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
-
+from refund_management import RefundFrame
 import helpers
 
 
@@ -53,7 +53,7 @@ class SalesFrame(tk.Frame):
                  text="Search",
                  fg="white",
                  bg="#2c3e50",
-                 width=12,
+                 width=15,
                  font=("Segoe UI", 14), ).grid(row=0, column=0, columnspan=4, sticky=tk.NSEW)
         tk.Label(custom_search, text="Search by:", font=("Segoe UI", 10), ).grid(row=1, column=0, pady=10, sticky=tk.E)
         self.search_filter = tk.StringVar(value="by_invoice")
@@ -75,10 +75,10 @@ class SalesFrame(tk.Frame):
                                                   activebackground="#1abc9c", selectcolor="#1abc9c",
                                                   variable=self.search_filter,
                                                   value="by_date", command=self.search_by_date_range, indicatoron=False)
-        self.by_date_radiobutton.grid(row=1, column=3, pady=10, sticky=tk.W)
+        self.by_date_radiobutton.grid(row=1, column=3, pady=10, padx=(0, 8), sticky=tk.W)
         self.option_label = tk.Label(custom_search, text="Invoice Number:", width=13, font=("Segoe UI", 10),
                                      anchor=tk.E, )
-        self.option_label.grid(row=2, column=0, pady=(0, 10), sticky=tk.E)
+        self.option_label.grid(row=2, column=0, pady=(0, 10), padx=(7, 0), sticky=tk.E)
 
         self.invoice_or_phone_entry = tk.Entry(custom_search, width=10, font=("Segoe UI", 10), )
         self.invoice_or_phone_entry.grid(row=2, column=1, columnspan=2, pady=(0, 10), sticky=tk.EW)
@@ -96,7 +96,7 @@ class SalesFrame(tk.Frame):
 
         self.search_button = tk.Button(custom_search, text="Get", font=("Segoe UI", 8),
                                        command=self.get_invoice_by_search)
-        self.search_button.grid(row=2, column=3, pady=(0, 10), sticky=tk.EW)
+        self.search_button.grid(row=2, column=3, pady=(0, 10), padx=(0, 8), sticky=tk.EW)
 
         # Sales Treeview Frame------------------------------------------------------------------------------------------
         self.sales_treeview_frame = tk.Frame(self)
@@ -341,20 +341,14 @@ class SalesFrame(tk.Frame):
         sales_return_window = tk.Toplevel(self.sales_treeview_frame)
         sales_return_window.title("Receive Payment")
         sales_return_window.config(padx=20, pady=20)
-        self.center_window(sales_return_window, 500, 800)
+        self.center_window(sales_return_window, 600, 1000)
         sales_return_window.transient()
         sales_return_window.grab_set()  # modal behavior
         sales_return_window.resizable(False, False)
-
-        columns = ("Product Name", "Sold Unit Price", "Sold Quantity", "Return Quantity")
-        sales_return_treeview = ttk.Treeview(sales_return_window, show="headings", columns=columns, height=10, )
-        for col in columns:
-            sales_return_treeview.heading(col, text=col)
-        sales_return_treeview.column("Product Name", width=325)
-        sales_return_treeview.column("Sold Unit Price", width=150)
-        sales_return_treeview.column("Sold Quantity", width=150)
-        sales_return_treeview.column("Return Quantity", width=150)
-        sales_return_treeview.grid(row=0, column=0)
+        selected_invoice_id = self.sales_treeview.selection()[0]
+        invoice_id = self.sales_treeview.item(selected_invoice_id, "values")[0]
+        invoice = self.dbmanager.get_invoice(invoice_id)
+        RefundFrame(sales_return_window, invoice)
 
     def search_by_invoice(self):
         self.option_label.config(text="Invoice Number:")

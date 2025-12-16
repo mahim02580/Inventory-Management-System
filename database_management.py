@@ -106,6 +106,17 @@ def add_customer(customer):
     return customer
 
 
+def get_all_customers():
+    customers = session.execute(select(Customer)).scalars().all()
+    return customers
+
+
+def update_customer(customer_id, changed_column, new_value):
+    customer_to_update = session.get(Customer, int(customer_id))
+    customer_to_update.__setattr__(changed_column, new_value)
+    session.commit()
+
+
 # Sales Management
 def add_purchase(purchase):
     session.add(purchase)
@@ -122,3 +133,17 @@ def get_today_sales():
 def get_all_sales():
     all_sales = session.execute(select(Purchase)).scalars().all()
     return all_sales
+
+
+def get_invoice(invoice_id):
+    invoice = session.get(Purchase, invoice_id)
+    return invoice
+
+
+def get_invoices_by_date(date):
+    invoices = session.execute(select(Purchase).where(Purchase.date == date)).scalars().all()
+    return invoices
+
+
+def update_changes():
+    session.commit()

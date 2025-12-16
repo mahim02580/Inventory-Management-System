@@ -11,8 +11,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("M Rahman Ceramic")
-        self.geometry("1360x760")
-        self.resizable(False, False)
+        self.state('zoomed')
 
         # Allows custom styles
         style = ttk.Style(self)

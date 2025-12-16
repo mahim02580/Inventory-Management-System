@@ -13,12 +13,12 @@ class ProductsFrame(tk.Frame):
         self.menu.add_command(label="Delete", command=self.delete_item)
         # Products Treeview---------------------------------------------------------------------------------------------
         columns = ("Product ID", "Product Name", "Unit Price", "Stock")
-        self.tree = ttk.Treeview(self, columns=columns, show="headings", height=24)
+        self.tree = ttk.Treeview(self, columns=columns, show="headings", height=21)
         for col in columns:
             self.tree.heading(col, text=col)
 
         self.tree.column("Product ID", width=115, stretch=False, anchor=tk.CENTER)
-        self.tree.column("Product Name", width=520, stretch=False)
+        self.tree.column("Product Name", width=519, stretch=False)
         self.tree.column("Unit Price", width=95, stretch=False)
         self.tree.column("Stock", width=95, stretch=False)
         self.tree.grid(row=0, column=0)

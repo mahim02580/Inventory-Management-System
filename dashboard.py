@@ -126,7 +126,7 @@ class DashboardFrame(tk.Frame):
         self.product_entry_treeview = ttk.Treeview(product_selection_frame,
                                                    columns=columns,
                                                    show="headings",
-                                                   height=16,
+                                                   height=15,
                                                    style="Treeview")
         self.product_entry_treeview.bind("<Button-3>", self.show_menu)
         self.product_entry_treeview.tag_configure("product_entry_row", background="#f0f0f0")
