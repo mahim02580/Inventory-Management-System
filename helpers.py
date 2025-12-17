@@ -11,20 +11,20 @@ def make_invoice_for_purchase(purchase):
               Sales Invoice
 ========================================
 Invoice No          :      {purchase.id}
-Date                :    {purchase.date}
-Time                :    {purchase.time}   
+Date                :    {purchase.date.strftime("%d-%m-%Y")}
+Time                :    {purchase.time.strftime("%I:%M %p")}   
 ----------------------------------------
 Item           Unit Price  Qty  Subtotal
-{purchase.details}
+{purchase.items}
 ----------------------------------------
            MRP Total:{purchase.mrp_total}
         (-) Discount:{purchase.discount}
                      -------------------
        Total Payable:{purchase.total_payable}
-                Paid:{purchase.total_paid_amount}
+                Paid:{purchase.paid}
                      -------------------
-              Change:{purchase.change_amount}
-                 Due:{purchase.due_amount}
+              Change:{purchase.change}
+                 Due:{purchase.due}
 ----------------------------------------
 
 Customer ID: {purchase.customer.id}

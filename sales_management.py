@@ -148,36 +148,20 @@ class SalesFrame(tk.Frame):
     def all_invoices(self):
         self.disable_search_mechanism()
         self.sales_treeview.delete(*self.sales_treeview.get_children())
-        for invoice in self.dbmanager.get_all_sales()[::-1]:
-            self.sales_treeview.insert(
-                "",
-                tk.END,
-                values=(invoice.id, invoice.date, invoice.time,
-                        f"{invoice.customer.name} - {invoice.customer.phone}",
-                        invoice.total_payable, invoice.due_amount))
+        invoices = self.dbmanager.get_all_sales()[::-1]
+        self.show_invoice(invoices)
 
     def today_invoices(self):
         self.disable_search_mechanism()
         self.sales_treeview.delete(*self.sales_treeview.get_children())
-        for invoice in self.dbmanager.get_today_sales()[::-1]:
-            self.sales_treeview.insert(
-                "",
-                tk.END,
-                values=(invoice.id, invoice.date, invoice.time,
-                        f"{invoice.customer.name} - {invoice.customer.phone}",
-                        invoice.total_payable, invoice.due_amount), )
+        invoices = self.dbmanager.get_today_sales()[::-1]
+        self.show_invoice(invoices)
 
     def due_invoices(self):
         self.disable_search_mechanism()
         self.sales_treeview.delete(*self.sales_treeview.get_children())
-        for invoice in self.dbmanager.get_all_sales()[::-1]:
-            if invoice.due_amount > 0:
-                self.sales_treeview.insert(
-                    "",
-                    tk.END,
-                    values=(invoice.id, invoice.date, invoice.time,
-                            f"{invoice.customer.name} - {invoice.customer.phone}",
-                            invoice.total_payable, invoice.due_amount), )
+        due_invoices = [invoice for invoice in self.dbmanager.get_all_sales()[::-1] if invoice.due > 0]
+        self.show_invoice(due_invoices)
 
     def custom_search(self):
         self.enable_search_mechanism()
@@ -198,8 +182,7 @@ class SalesFrame(tk.Frame):
         self.search_button.config(state=tk.DISABLED)
 
     def view_invoice(self, event):
-
-        selected_item = self.sales_treeview.selection()
+        selected_item = self.sales_treeview.selection()[0]
         invoice_id = self.sales_treeview.item(selected_item, "values")[0]
         invoice = self.dbmanager.get_invoice(invoice_id)
         ready_invoice = helpers.make_invoice_for_purchase(invoice)
@@ -223,9 +206,9 @@ class SalesFrame(tk.Frame):
             self.sales_treeview.insert(
                 "",
                 tk.END,
-                values=(invoice.id, invoice.date, invoice.time,
+                values=(invoice.id, invoice.date.strftime("%d-%m-%Y"), invoice.time.strftime("%I:%M %p"),
                         f"{invoice.customer.name} - {invoice.customer.phone}",
-                        invoice.total_payable, invoice.due_amount), )
+                        invoice.total_payable, invoice.due), )
 
     def get_invoice_by_search(self):
         filter_option = self.search_filter.get()
@@ -256,7 +239,7 @@ class SalesFrame(tk.Frame):
             self.show_invoice(invoices)
 
     def receive_payment(self):
-        selected_invoice_id = self.sales_treeview.selection()
+        selected_invoice_id = self.sales_treeview.selection()[0]
         selected_invoice = self.sales_treeview.item(selected_invoice_id, "values")
         due_amount = int(selected_invoice[-1])
         print(due_amount)
@@ -266,10 +249,10 @@ class SalesFrame(tk.Frame):
         else:
             def update_invoice_with_new_payment():
                 received_amount = int(payment_received_entry.get())
-                if received_amount > invoice.due_amount:
+                if received_amount > invoice.due:
                     messagebox.showinfo(message="Received amount is greater than due amount. Check and try again!")
                     return
-                invoice.due_amount -= received_amount
+                invoice.due -= received_amount
                 self.dbmanager.update_changes()
                 payment_win.destroy()
                 self.all_radio_button.invoke()
@@ -303,7 +286,7 @@ class SalesFrame(tk.Frame):
                      anchor=tk.W, ).grid(row=2, column=0, sticky=tk.W)
             tk.Label(payment_win, text=":", font=("Segoe UI", 12, "bold"),
                      anchor=tk.W, ).grid(row=2, column=1, sticky=tk.W)
-            tk.Label(payment_win, text=f"{invoice.total_paid_amount}", font=("Segoe UI", 12, "bold"),
+            tk.Label(payment_win, text=f"{invoice.paid}", font=("Segoe UI", 12, "bold"),
                      anchor=tk.W, ).grid(row=2, column=2, sticky=tk.W)
 
             # Due
@@ -311,7 +294,7 @@ class SalesFrame(tk.Frame):
                      anchor=tk.W, ).grid(row=3, column=0, sticky=tk.W)
             tk.Label(payment_win, text=":", fg="red", font=("Segoe UI", 12, "bold"),
                      anchor=tk.W, ).grid(row=3, column=1, sticky=tk.W)
-            tk.Label(payment_win, text=f"{invoice.due_amount}", fg="red", font=("Segoe UI", 12, "bold"),
+            tk.Label(payment_win, text=f"{invoice.due}", fg="red", font=("Segoe UI", 12, "bold"),
                      anchor=tk.W, ).grid(row=3, column=2, sticky=tk.W)
 
             tk.Label(payment_win, text="Payment Received", font=("Segoe UI", 12, "bold"), anchor=tk.W, ).grid(row=4,
@@ -348,7 +331,7 @@ class SalesFrame(tk.Frame):
         selected_invoice_id = self.sales_treeview.selection()[0]
         invoice_id = self.sales_treeview.item(selected_invoice_id, "values")[0]
         invoice = self.dbmanager.get_invoice(invoice_id)
-        RefundFrame(sales_return_window, invoice)
+        RefundFrame(sales_return_window, invoice, self.dbmanager)
 
     def search_by_invoice(self):
         self.option_label.config(text="Invoice Number:")

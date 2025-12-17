@@ -326,9 +326,9 @@ class DashboardFrame(tk.Frame):
                  bg="#2c3e50", font=("Segoe UI", 12),
                  fg="white").grid(
             row=10, column=1, sticky=tk.NSEW)
-        self.due_amount = tk.IntVar(value=0)
+        self.due = tk.IntVar(value=0)
         tk.Label(invoice_frame,
-                 textvariable=self.due_amount,
+                 textvariable=self.due,
                  fg="white",
                  bg="#2c3e50",
                  font=("Segoe UI", 12),
@@ -460,9 +460,9 @@ class DashboardFrame(tk.Frame):
         self.total_paid_amount.set(total_amount_has_given)
         if self.total.get() < self.total_paid_amount.get():
             self.change_amount.set(total_amount_has_given - self.total.get())
-            self.due_amount.set(0)
+            self.due.set(0)
         else:
-            self.due_amount.set(self.total.get() - self.total_paid_amount.get())
+            self.due.set(self.total.get() - self.total_paid_amount.get())
             self.change_amount.set(0)
 
     def search_customer(self):
@@ -488,7 +488,7 @@ class DashboardFrame(tk.Frame):
         all_sales = self.dbmanager.get_all_sales()
         self.sales_today.set(len(today_sales))
         self.revenue_today.set(sum([sale.total_payable for sale in today_sales]))
-        self.total_due.set(sum([sale.due_amount for sale in all_sales]))
+        self.total_due.set(sum([sale.due for sale in all_sales]))
 
         # Resets Product Name List
         self.product_name_combobox.config(values=self.dbmanager.get_all_products_name())
@@ -514,8 +514,6 @@ class DashboardFrame(tk.Frame):
         self.customer_name_entry.delete(0, tk.END)
         self.customer_address_entry.delete("1.0", tk.END)
 
-
-
     def print_invoice(self):
         current_customer_phone = self.customer_phone_entry.get()
         if current_customer_phone:
@@ -531,28 +529,30 @@ class DashboardFrame(tk.Frame):
             current_customer = self.dbmanager.get_customer_by_phone("017XXXXXXXXX")
 
         # Adds product to invoice
-        purchased_products = ""
-        for row in self.product_entry_treeview.get_children():
-            product_id, item, unit_price, quantity, subtotal = self.product_entry_treeview.item(row)["values"]
-            # Format spacing (important for alignment)
-            purchased_products += f"{item[:14]:<14}{unit_price:>5} {quantity:>6} {subtotal:>7}\n"
-
-            # Adjusts stock while looping over through the TreeView
-            self.dbmanager.adjust_stock_of_product(product_id, quantity)
-
-        purchase = self.dbmanager.Purchase(
-            date=datetime.now().strftime("%d-%m-%Y"),
-            time=datetime.now().strftime("%I:%M %p"),
-            details=purchased_products,
+        invoice = self.dbmanager.Invoice(
             customer_id=current_customer.id,
             mrp_total=self.mrp_total.get(),
             discount=self.discount_entry.get(),
             total_payable=self.total.get(),
-            total_paid_amount=self.total_paid_amount.get(),
-            change_amount=self.change_amount.get(),
-            due_amount=self.due_amount.get(),
+            paid=self.total_paid_amount.get(),
+            change=self.change_amount.get(),
+            due=self.due.get(),
         )
-        purchase = self.dbmanager.add_purchase(purchase)
-        invoice = helpers.make_invoice_for_purchase(purchase)
-        helpers.print_out_invoice(invoice)
+        for row in self.product_entry_treeview.get_children():
+            product_id, product_name, unit_price, quantity, subtotal = self.product_entry_treeview.item(row, "values")
+
+            saleitem = self.dbmanager.SaleItem(
+                product_id=int(product_id),
+                product_name=product_name,
+                unit_price=int(unit_price),
+                quantity=int(quantity),
+                subtotal=int(subtotal),
+            )
+            invoice.items.append(saleitem)
+            # Adjusts stock while looping over through the TreeView
+            self.dbmanager.adjust_stock_of_product(saleitem.product_id, saleitem.quantity)
+
+        self.dbmanager.add_purchase(invoice)
+        ready_invoice = helpers.make_invoice_for_purchase(invoice)
+        helpers.print_out_invoice(ready_invoice)
         self.refresh()

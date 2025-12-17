@@ -1,5 +1,5 @@
-import datetime
-from sqlalchemy import create_engine, select, ForeignKey
+from datetime import date, time, datetime
+from sqlalchemy import create_engine, select, ForeignKey, Date, Time
 from sqlalchemy.orm import DeclarativeBase, Session, Mapped, mapped_column, relationship
 
 
@@ -10,35 +10,63 @@ class Base(DeclarativeBase):
 # ------------------------------------------Table Models------------------------------------------
 class Product(Base):
     __tablename__ = "products"
-    id: Mapped[int] = mapped_column("ID", primary_key=True)
-    name: Mapped[str] = mapped_column("Name", nullable=False)
-    unit_price: Mapped[int] = mapped_column("Unit Price", nullable=False)
-    stock: Mapped[int] = mapped_column("Stock", nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    unit_price: Mapped[int] = mapped_column(nullable=False)
+    stock: Mapped[int] = mapped_column(nullable=False)
 
 
 class Customer(Base):
     __tablename__ = "customers"
-    id: Mapped[int] = mapped_column("ID", primary_key=True)
-    name: Mapped[str] = mapped_column("Name")
-    phone: Mapped[str] = mapped_column("Phone")
-    address: Mapped[str] = mapped_column("Address")
-    purchases = relationship("Purchase", back_populates="customer")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    phone: Mapped[str] = mapped_column(nullable=False)
+    address: Mapped[str] = mapped_column()
+    purchases = relationship("Invoice", back_populates="customer")
 
 
-class Purchase(Base):
+class Refund(Base):
+    __tablename__ = "refunds"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sale_id: Mapped[int] = mapped_column(ForeignKey("sales.id"), nullable=False)
+    refund_quantity: Mapped[int] = mapped_column(nullable=False)
+    refund_amount: Mapped[float] = mapped_column(nullable=False)
+    date: Mapped[date] = mapped_column(Date, default=lambda: datetime.today().date(), nullable=False)
+    time: Mapped[time] = mapped_column(Time, default=lambda: datetime.today().time())
+    # RELATION
+    sale_item = relationship("SaleItem", back_populates="refunds")
+
+
+class SaleItem(Base):
     __tablename__ = "sales"
-    id: Mapped[int] = mapped_column("ID", primary_key=True)
-    date: Mapped[str] = mapped_column("Date", nullable=False)
-    time: Mapped[str] = mapped_column("Time", nullable=False)
-    details: Mapped[str] = mapped_column("Details", nullable=False)
-    customer_id: Mapped[int] = mapped_column("Customer ID", ForeignKey(Customer.id))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    product_name: Mapped[str] = mapped_column(nullable=False)
+    unit_price: Mapped[int] = mapped_column(nullable=False)
+    quantity: Mapped[int] = mapped_column(nullable=False)
+    subtotal: Mapped[int] = mapped_column(nullable=False)
+
+    invoice = relationship("Invoice", back_populates="items")
+    refunds = relationship("Refund", back_populates="sale_item")
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[date] = mapped_column(Date, default=lambda: datetime.today().date(),
+                         nullable=False)
+    time: Mapped[time] = mapped_column(Time, default=lambda: datetime.today().time(),
+                         nullable=False)
+    items = relationship(SaleItem, back_populates="invoice")
+    customer_id: Mapped[int] = mapped_column(ForeignKey(Customer.id))
     customer = relationship("Customer", back_populates="purchases")
-    mrp_total: Mapped[int] = mapped_column("MRP Total", nullable=False)
-    discount: Mapped[int] = mapped_column("(-) Discount", nullable=False)
-    total_payable: Mapped[int] = mapped_column("Total Payable", nullable=False)
-    total_paid_amount: Mapped[int] = mapped_column("Paid", nullable=False)
-    change_amount: Mapped[int] = mapped_column("Change", nullable=False)
-    due_amount: Mapped[int] = mapped_column("Due", nullable=False)
+    mrp_total: Mapped[int] = mapped_column(nullable=False)
+    discount: Mapped[int] = mapped_column(nullable=False)
+    total_payable: Mapped[int] = mapped_column(nullable=False)
+    paid: Mapped[int] = mapped_column(nullable=False)
+    change: Mapped[int] = mapped_column("Change", nullable=False)
+    due: Mapped[int] = mapped_column("Due", nullable=False)
 
 
 # ------------------------------------------ Engine + Session ------------------------------------------
@@ -125,23 +153,23 @@ def add_purchase(purchase):
 
 
 def get_today_sales():
-    today = datetime.datetime.now().strftime("%d-%m-%Y")
-    today_sales = session.execute(select(Purchase).where(Purchase.date == today)).scalars().all()
+    today = datetime.today().date()
+    today_sales = session.execute(select(Invoice).where(Invoice.date == today)).scalars().all()
     return today_sales
 
 
 def get_all_sales():
-    all_sales = session.execute(select(Purchase)).scalars().all()
+    all_sales = session.execute(select(Invoice)).scalars().all()
     return all_sales
 
 
 def get_invoice(invoice_id):
-    invoice = session.get(Purchase, invoice_id)
+    invoice = session.get(Invoice, invoice_id)
     return invoice
 
 
 def get_invoices_by_date(date):
-    invoices = session.execute(select(Purchase).where(Purchase.date == date)).scalars().all()
+    invoices = session.execute(select(Invoice).where(Invoice.date == date)).scalars().all()
     return invoices
 
 
