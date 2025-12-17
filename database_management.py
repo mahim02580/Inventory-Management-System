@@ -55,9 +55,9 @@ class Invoice(Base):
     __tablename__ = "invoices"
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[date] = mapped_column(Date, default=lambda: datetime.today().date(),
-                         nullable=False)
+                                       nullable=False)
     time: Mapped[time] = mapped_column(Time, default=lambda: datetime.today().time(),
-                         nullable=False)
+                                       nullable=False)
     items = relationship(SaleItem, back_populates="invoice")
     customer_id: Mapped[int] = mapped_column(ForeignKey(Customer.id))
     customer = relationship("Customer", back_populates="purchases")
@@ -68,6 +68,14 @@ class Invoice(Base):
     change: Mapped[int] = mapped_column("Change", nullable=False)
     due: Mapped[int] = mapped_column("Due", nullable=False)
 
+class ReturnInvoice(Base):
+    __tablename__ = "return_invoices"
+    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[date] = mapped_column(Date, default=lambda: datetime.today().date(),
+                                       nullable=False)
+    time: Mapped[time] = mapped_column(Time, default=lambda: datetime.today().time(),
+                                       nullable=False)
 
 # ------------------------------------------ Engine + Session ------------------------------------------
 engine = create_engine("sqlite:///database.db")
@@ -175,3 +183,8 @@ def get_invoices_by_date(date):
 
 def update_changes():
     session.commit()
+
+
+def get_saleitem(sale_id):
+    saleitem = session.get(SaleItem, sale_id)
+    return saleitem
