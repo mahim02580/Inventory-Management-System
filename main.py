@@ -12,7 +12,6 @@ class App(tk.Tk):
         super().__init__()
         self.title("M Rahman Ceramic")
         self.state('zoomed')
-
         # Allows custom styles
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -85,7 +84,7 @@ class App(tk.Tk):
             frame.grid(row=0, column=0, sticky=tk.NSEW)
 
         self.show_frame("dashboard")
-
+        self.iconbitmap("assets/logo.ico") # It takes time to load
     def show_frame(self, name):
         self.frames[name].tkraise()
 

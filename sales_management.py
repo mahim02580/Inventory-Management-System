@@ -1,3 +1,4 @@
+import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
@@ -7,7 +8,7 @@ import helpers
 
 class SalesFrame(tk.Frame):
     def __init__(self, parent, dbmanager):
-        super().__init__(parent, bg="white")
+        super().__init__(parent)
         self.dbmanager = dbmanager
         self.filter_var = tk.StringVar(value="all")
         # Options Frame ------------------------------------------------------------------------------------------------
@@ -49,13 +50,16 @@ class SalesFrame(tk.Frame):
         custom_search = tk.Frame(options_frame, highlightbackground="#2c3e50", highlightthickness=2)
         custom_search.grid(row=0, column=4, sticky=tk.NSEW)
 
-        tk.Label(custom_search,
+        self.search_label = tk.Label(custom_search,
                  text="Search",
                  fg="white",
                  bg="#2c3e50",
                  width=15,
-                 font=("Segoe UI", 14), ).grid(row=0, column=0, columnspan=4, sticky=tk.NSEW)
-        tk.Label(custom_search, text="Search by:", font=("Segoe UI", 10), ).grid(row=1, column=0, pady=10, sticky=tk.E)
+                 font=("Segoe UI", 14), )
+        self.search_label.grid(row=0, column=0, columnspan=4, sticky=tk.NSEW)
+        self.search_by_label = tk.Label(custom_search, text="Search by:", font=("Segoe UI", 10), )
+        self.search_by_label.grid(row=1, column=0, pady=10, sticky=tk.E)
+
         self.search_filter = tk.StringVar(value="by_invoice")
         self.by_invoice_radiobutton = tk.Radiobutton(custom_search, text="Invoice", fg="white", bg="#3498db",
                                                      activeforeground="white", width=8, font=("Segoe UI", 10),
@@ -82,7 +86,7 @@ class SalesFrame(tk.Frame):
 
         self.invoice_or_phone_entry = tk.Entry(custom_search, width=10, font=("Segoe UI", 10), )
         self.invoice_or_phone_entry.grid(row=2, column=1, columnspan=2, pady=(0, 10), sticky=tk.EW)
-        self.from_date_entry = DateEntry(
+        self.date_entry = DateEntry(
             custom_search,
             date_pattern="dd-mm-yyyy",
             width=18,
@@ -91,8 +95,8 @@ class SalesFrame(tk.Frame):
             foreground="white",
             selectbackground="#1a252f",
         )
-        self.from_date_entry.grid(row=2, column=1, pady=(0, 10), columnspan=2)
-        self.from_date_entry.grid_remove()
+        self.date_entry.grid(row=2, column=1, pady=(0, 10), columnspan=2)
+        self.date_entry.grid_remove()
 
         self.search_button = tk.Button(custom_search, text="Get", font=("Segoe UI", 8),
                                        command=self.get_invoice_by_search)
@@ -108,6 +112,7 @@ class SalesFrame(tk.Frame):
 
         columns = ("Invoice", "Date", "Time", "Customer", "Amount", "Due")
         self.sales_treeview = ttk.Treeview(self.sales_treeview_frame, columns=columns, show="headings", height=16)
+
         self.sales_treeview.bind("<<TreeviewSelect>>", self.view_invoice)
         for col in columns:
             self.sales_treeview.heading(col, text=col)
@@ -117,6 +122,8 @@ class SalesFrame(tk.Frame):
         self.sales_treeview.column("Customer", width=300, stretch=False, anchor=tk.W)
         self.sales_treeview.column("Amount", width=100, stretch=False, anchor=tk.W)
         self.sales_treeview.column("Due", width=100, stretch=False, anchor=tk.W)
+        self.sales_treeview.tag_configure("evenrow", background="#f0f0f0")
+        self.sales_treeview.tag_configure("oddrow", background="#FFFFFF")
         self.sales_treeview.grid(row=0, column=0, padx=(20, 0), sticky=tk.N)
 
         sales_treeview_scrollbar = ttk.Scrollbar(self.sales_treeview_frame, orient=tk.VERTICAL,
@@ -135,7 +142,7 @@ class SalesFrame(tk.Frame):
         self.invoice_text.config(yscrollcommand=invoice_scrollbar.set)
 
         ttk.Button(invoice_frame, text="PRINT", command=self.print_invoice).grid(row=1, column=0, padx=(20, 0),
-                                                                                 pady=(20, 0), sticky=tk.EW)
+                                                                                 pady=(15, 0), sticky=tk.EW)
 
         self.all_radio_button.invoke()
 
@@ -167,19 +174,26 @@ class SalesFrame(tk.Frame):
         self.enable_search_mechanism()
 
     def enable_search_mechanism(self):
+        self.search_label.config(fg="white")
+        self.option_label.config(fg="black")
+        self.search_by_label.config(fg="black")
         self.by_invoice_radiobutton.config(state=tk.NORMAL)
         self.by_phone_radiobutton.config(state=tk.NORMAL)
         self.by_date_radiobutton.config(state=tk.NORMAL)
         self.invoice_or_phone_entry.config(state=tk.NORMAL)
         self.search_button.config(state=tk.NORMAL)
+        self.date_entry.config(state=tk.NORMAL)
 
     def disable_search_mechanism(self):
-
+        self.search_label.config(fg="gray")
+        self.option_label.config(fg="gray")
+        self.search_by_label.config(fg="gray")
         self.by_invoice_radiobutton.config(state=tk.DISABLED)
         self.by_phone_radiobutton.config(state=tk.DISABLED)
         self.by_date_radiobutton.config(state=tk.DISABLED)
         self.invoice_or_phone_entry.config(state=tk.DISABLED)
         self.search_button.config(state=tk.DISABLED)
+        self.date_entry.config(state=tk.DISABLED,)
 
     def view_invoice(self, event):
         selected_item = self.sales_treeview.selection()[0]
@@ -202,13 +216,14 @@ class SalesFrame(tk.Frame):
 
     def show_invoice(self, invoices):
         self.sales_treeview.delete(*self.sales_treeview.get_children())
-        for invoice in invoices:
+        for i, invoice in enumerate(invoices):
+            tag = "evenrow" if i % 2 == 0 else "oddrow"
             self.sales_treeview.insert(
                 "",
                 tk.END,
                 values=(invoice.id, invoice.date.strftime("%d-%m-%Y"), invoice.time.strftime("%I:%M %p"),
                         f"{invoice.customer.name} - {invoice.customer.phone}",
-                        invoice.total_payable, invoice.due), )
+                        invoice.total_payable, invoice.due), tags=tag)
 
     def get_invoice_by_search(self):
         filter_option = self.search_filter.get()
@@ -231,8 +246,10 @@ class SalesFrame(tk.Frame):
             self.show_invoice(purchases_of_the_customer)
 
         elif filter_option == "by_date":
-            date = self.from_date_entry.get()
-            invoices = self.dbmanager.get_invoices_by_date(date)
+            date = self.date_entry.get()
+            day, month, year = date.split("-")
+            date_obj = datetime.date(day=int(day), month=int(month), year=int(year))
+            invoices = self.dbmanager.get_invoices_by_date(date_obj)
             if not invoices:
                 messagebox.showerror(title="Not Found", message="No invoices found for this date.")
                 return
@@ -252,6 +269,7 @@ class SalesFrame(tk.Frame):
                 if received_amount > invoice.due:
                     messagebox.showinfo(message="Received amount is greater than due amount. Check and try again!")
                     return
+                invoice.paid += received_amount
                 invoice.due -= received_amount
                 self.dbmanager.update_changes()
                 payment_win.destroy()
@@ -324,7 +342,7 @@ class SalesFrame(tk.Frame):
         sales_return_window = tk.Toplevel(self.sales_treeview_frame)
         sales_return_window.title("Receive Payment")
         sales_return_window.config(padx=20, pady=20)
-        self.center_window(sales_return_window, 600, 1000)
+        self.center_window(sales_return_window, 550, 1085)
         sales_return_window.transient()
         sales_return_window.grab_set()  # modal behavior
         sales_return_window.resizable(False, False)
@@ -346,9 +364,9 @@ class SalesFrame(tk.Frame):
         self.show_custom_date_search()
 
     def show_invoice_or_phone_entry_search(self):
-        self.from_date_entry.grid_remove()
+        self.date_entry.grid_remove()
         self.invoice_or_phone_entry.grid()
 
     def show_custom_date_search(self):
         self.invoice_or_phone_entry.grid_remove()
-        self.from_date_entry.grid()
+        self.date_entry.grid()

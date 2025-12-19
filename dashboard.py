@@ -10,7 +10,7 @@ SHOP_NAME = "M Rahman\nCeramic"
 
 class DashboardFrame(tk.Frame):
     def __init__(self, parent, dbmanager):
-        super().__init__(parent, bg="#f5f5f5")
+        super().__init__(parent)
         self.configure(padx=20, pady=20)
         self.parent = parent
         self.dbmanager = dbmanager
@@ -18,54 +18,54 @@ class DashboardFrame(tk.Frame):
         # Sales Today + Revenue Today + Total Due-----------------------------------------------------------------------
         self.sales_today = tk.IntVar(value=0)
         self.revenue_today = tk.IntVar(value=0)
-        self.total_due = tk.IntVar(value=0)
+        self.due_today = tk.IntVar(value=0)
+        self.refund_today = tk.IntVar(value=0)
+        self.balance = tk.IntVar(value=0)
 
         top_frame = tk.Frame(self)
         top_frame.grid(row=0, column=0, sticky=tk.W)
         tk.Label(top_frame,
-                 text="Sales Today",
+                 text="Sales",
                  bg="#3498db",
                  fg="white",
-                 width=18,
+                 width=10,
                  font=("Arial", 18, "bold"),
                  ).grid(row=0, column=0)
         tk.Label(top_frame,
                  textvariable=self.sales_today,
                  bg="#3498db",
                  fg="white",
-                 width=18,
                  height=1,
                  font=("Arial", 18, "bold"),
-                 ).grid(row=1, column=0)
+                 ).grid(row=1, column=0, sticky=tk.NSEW)
 
         tk.Label(top_frame,
-                 text=f"Revenue Today",
-                 bg="#1abc9c",
+                 text=f"Revenue",
+                 bg="#C9A227",
                  fg="white",
-                 width=18,
-
+                 width=10,
                  font=("Arial", 18, "bold"),
                  ).grid(row=0, column=1, columnspan=2)
         tk.Label(top_frame,
                  text="৳",
-                 bg="#1abc9c",
+                 bg="#C9A227",
                  fg="white",
                  font=("Arial", 18, "bold"),
                  anchor=tk.E,
                  ).grid(row=1, column=1, sticky=tk.NSEW)
         tk.Label(top_frame,
                  textvariable=self.revenue_today,
-                 bg="#1abc9c",
+                 bg="#C9A227",
                  fg="white",
                  font=("Arial", 18, "bold"),
                  anchor=tk.W,
                  ).grid(row=1, column=2, sticky=tk.NSEW)
 
         tk.Label(top_frame,
-                 text=f"Total Due",
+                 text=f"Due",
                  bg="#9b59b6",
                  fg="white",
-                 width=18,
+                 width=10,
                  font=("Arial", 18, "bold"),
                  ).grid(row=0, column=3, columnspan=2)
         tk.Label(top_frame,
@@ -76,12 +76,56 @@ class DashboardFrame(tk.Frame):
                  anchor=tk.E,
                  ).grid(row=1, column=3, sticky=tk.NSEW)
         tk.Label(top_frame,
-                 textvariable=self.total_due,
+                 textvariable=self.due_today,
                  bg="#9b59b6",
                  fg="white",
                  font=("Arial", 18, "bold"),
                  anchor=tk.W,
                  ).grid(row=1, column=4, sticky=tk.NSEW)
+
+        tk.Label(top_frame,
+                 text=f"Return",
+                 bg="#1abc9c",
+                 fg="white",
+                 width=10,
+                 font=("Arial", 18, "bold"),
+                 ).grid(row=0, column=5, columnspan=2)
+        tk.Label(top_frame,
+                 text="৳",
+                 bg="#1abc9c",
+                 fg="white",
+                 font=("Arial", 18, "bold"),
+                 anchor=tk.E,
+                 ).grid(row=1, column=5, sticky=tk.NSEW)
+        tk.Label(top_frame,
+                 textvariable=self.refund_today,
+                 bg="#1abc9c",
+                 fg="white",
+                 font=("Arial", 18, "bold"),
+                 anchor=tk.W,
+                 ).grid(row=1, column=6, sticky=tk.NSEW)
+
+        tk.Label(top_frame,
+                 text=f"Balance",
+                 bg="#2c3e50",
+                 fg="white",
+                 width=13,
+                 font=("Arial", 18, "bold"),
+                 ).grid(row=0, column=7, columnspan=2)
+        tk.Label(top_frame,
+                 text="৳",
+                 bg="#2c3e50",
+                 fg="white",
+                 font=("Arial", 18, "bold"),
+                 anchor=tk.E,
+                 ).grid(row=1, column=7, sticky=tk.NSEW)
+        tk.Label(top_frame,
+                 textvariable=self.balance,
+                 bg="#2c3e50",
+                 fg="white",
+                 font=("Arial", 18, "bold"),
+                 anchor=tk.W,
+                 ).grid(row=1, column=8, sticky=tk.NSEW)
 
         # Product Selection Frame--------------------------------------------------------------------------------------------
         ## Upper Part
@@ -90,16 +134,14 @@ class DashboardFrame(tk.Frame):
 
         tk.Label(product_selection_frame,
                  text="Select Product:",
-                 font=("Arial", 15),
-                 bg="#f5f5f5").grid(row=0, column=0, sticky=tk.W)
+                 font=("Arial", 15),).grid(row=0, column=0, sticky=tk.W)
 
         self.product_name_combobox = ttk.Combobox(product_selection_frame, width=35, font=("Arial", 15))
         self.product_name_combobox.grid(row=0, column=1)
 
         tk.Label(product_selection_frame,
                  text="Quantity:",
-                 font=Font(size=15),
-                 bg="#f5f5f5").grid(row=0, column=2)
+                 font=Font(size=15),).grid(row=0, column=2)
 
         self.quantity = tk.Spinbox(product_selection_frame, from_=1, to=100000, font=("Arial", 15), width=7,
                                    validate="key",
@@ -164,13 +206,11 @@ class DashboardFrame(tk.Frame):
         tk.Label(invoice_frame,
                  text="Total Items",
                  font=("Arial", 16, "bold"),
-                 bg="#f5f5f5",
                  anchor=tk.W
                  ).grid(row=0, column=0, sticky=tk.W)
         tk.Label(invoice_frame,
                  text=":",
                  font=("Arial", 16, "bold"),
-                 bg="#f5f5f5",
                  anchor=tk.W
                  ).grid(row=0, column=1)
         self.total_items = tk.IntVar(value=0)
@@ -536,11 +576,24 @@ class DashboardFrame(tk.Frame):
 
     def refresh(self):
         # Updates amounts in Dashboard
-        today_sales = self.dbmanager.get_today_sales()
         all_sales = self.dbmanager.get_all_sales()
+        today_sales = self.dbmanager.get_today_sales()
+
+        revenue_today = 0
+        due_today = 0
+        refund_today = 0
+        for sale in today_sales:
+            revenue_today += sale.total_payable
+            due_today += sale.due
+            for item in sale.items:
+                for refund in item.refunds:
+                    refund_today += refund.refund_amount
+
         self.sales_today.set(len(today_sales))
-        self.revenue_today.set(sum([sale.total_payable for sale in today_sales]))
-        self.total_due.set(sum([sale.due for sale in all_sales]))
+        self.revenue_today.set(revenue_today)
+        self.due_today.set(due_today)
+        self.refund_today.set(int(refund_today)) # Fix it in the database(pending)
+        self.balance.set(self.revenue_today.get() - (self.due_today.get() + self.refund_today.get()))
 
         # Resets Product Name List
         self.product_name_combobox.config(values=self.dbmanager.get_all_products_name())

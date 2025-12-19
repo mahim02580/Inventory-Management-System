@@ -1,23 +1,22 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from pyexpat.errors import messages
+import helpers
 
 
 class CustomersFrame(tk.Frame):
     def __init__(self, parent, dbms):
-        super().__init__(parent, bg="white")
+        super().__init__(parent)
         self.dbmanager = dbms
 
-        columns = ("Customer ID", "Customer Name", "Customer Phone", "Customer Address")
+        columns = ("Customer Name", "Customer Phone", "Customer Address")
         self.customer_details_treeview = ttk.Treeview(self, columns=columns, show="headings", height=21)
         for col in columns:
             self.customer_details_treeview.heading(col, text=col)
 
-        self.customer_details_treeview.column("Customer ID", width=110, stretch=False, anchor=tk.CENTER)
-        self.customer_details_treeview.column("Customer Name", width=264, stretch=False)
+        self.customer_details_treeview.column("Customer Name", width=314, stretch=False)
         self.customer_details_treeview.column("Customer Phone", width=150, stretch=False)
-        self.customer_details_treeview.column("Customer Address", width=300, stretch=False)
+        self.customer_details_treeview.column("Customer Address", width=360, stretch=False)
         self.customer_details_treeview.grid(row=0, column=0, padx=(20, 0), pady=20)
 
         self.customer_details_treeview.tag_configure("evenrow", background="#f0f0f0")
@@ -51,7 +50,7 @@ class CustomersFrame(tk.Frame):
                  bg="#2c3e50",
                  fg="white",
                  font=("Segoe UI", 12)).grid(row=3, column=0, padx=5, sticky=tk.NSEW)
-        self.customer_phone_entry = tk.Entry(new_customer_entry_frame, font=("Segoe UI", 12), )
+        self.customer_phone_entry = tk.Entry(new_customer_entry_frame, validate="key", validatecommand=(self.register(helpers.is_digit), "%P"), font=("Segoe UI", 12), )
         self.customer_phone_entry.grid(row=4, column=0, pady=(0, 10), padx=5, sticky=tk.EW)
 
         tk.Label(new_customer_entry_frame,
@@ -73,12 +72,21 @@ class CustomersFrame(tk.Frame):
                                            phone=self.customer_phone_entry.get(),
                                            address=self.customer_address_entry.get()
                                            )
+        does_exist = bool(self.dbmanager.get_customer_by_phone(customer.phone))
+        if does_exist:
+            messagebox.showerror(
+                title="Duplicate Found",
+                message="Customer already exists!"
+            )
+            return
+
         if not all([customer.name, customer.phone, customer.address]):
             messagebox.showerror(
                 title="Missing Information",
                 message="Customer's name, phone, address must all be filled in."
             )
             return
+
         self.dbmanager.add_customer(customer)
         self.refresh()
 
@@ -87,7 +95,7 @@ class CustomersFrame(tk.Frame):
         for i, customer in enumerate(self.dbmanager.get_all_customers()):
             tag = "evenrow" if i % 2 == 0 else "oddrow"
             self.customer_details_treeview.insert("", tk.END,
-                                                  values=(customer.id, customer.name, customer.phone, customer.address),
+                                                  values=(customer.name, customer.phone, customer.address),
                                                   tags=tag)
         self.customer_name_entry.delete(0, tk.END)
         self.customer_phone_entry.delete(0, tk.END)
