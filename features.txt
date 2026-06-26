@@ -1,0 +1,58 @@
+stick to a single thing until master in it
+
+products
+	add products - working Ma sh Allah
+	edit products - working Ma sh Allah
+	refresh products - working Ma sh Allah
+
+New Purchase
+	Add product - working Ma sh Allah
+	delete product - working Ma sh Allah
+	edit product fields - working Ma sh Allah
+	make purchase - working Ma sh Allah
+	refresh the frame - working Ma sh Allah
+
+Purchases
+	all purchases - should be working Ma sh Allah
+	today delivery -should be working Ma sh Allah
+	due purchases -should be working Ma sh Allah
+	custom search -should be working Ma sh Allah
+		search by supplier name -should be working Ma sh Allah
+		search by purchase date -should be working Ma sh Allah
+		search by delivery date -should be working Ma sh Allah
+	refresh	- working Ma sh Allah
+	view items - working Ma sh Allah
+	order received - working Ma sh Allah
+	pay due payment - working Ma sh Allah
+
+New Sale
+	Add product - working Ma sh Allah
+	delete product - working Ma sh Allah
+	edit product fields - working Ma sh Allah
+	search customers - working Ma sh Allah
+	make sale - working Ma Sh Allah
+	printing invoice - working Ma Sh Allah
+	refresh the frame - working Ma sh Allah
+
+Sales
+    All sales - Working Ma sh Allah
+    today - Working Ma sh Allah
+    Due -Working Ma sh Allah
+    custom search
+        search by invoice -Working Ma sh Allah
+        search by phone -Working Ma sh Allah
+        search by date -Working Ma sh Allah
+    invoice view -Working Ma sh Allah
+    refresh -Working Ma sh Allah
+    receive payment -
+    sales return -
+
+Expenses
+    add expense
+Customers
+Dashboard
+
+
+features are not available but have to add
+pipe fraction stock
+amount entries other characters block other than dot(.)
